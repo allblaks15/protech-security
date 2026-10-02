@@ -24,8 +24,8 @@
     el.textContent = new Date().getFullYear();
   });
 
-  // Prefill the quote form from ?service=…&location=…&phone=… (sent by the hero quick-quote form
-  // and by the "Request a quote for …" links on the services page).
+  // Prefill the quote form from ?service=…&location=…&phone=… (sent by the "Request a quote for …"
+  // links on the services page).
   var params = new URLSearchParams(window.location.search);
   var wanted = params.getAll("service");
   if (wanted.length) {
@@ -41,11 +41,12 @@
     if (v && input && !input.value) input.value = v;
   });
 
-  // Forms that email info@pro-tech.co.ke through FormSubmit's AJAX endpoint.
-  // Without JavaScript the same form posts normally and FormSubmit redirects to thank-you.html.
-  document.querySelectorAll("form[data-ajax]").forEach(function (form) {
+  // Order forms: build a WhatsApp message from the fields and open a chat with 0725 310 112.
+  // Without JavaScript the form still posts to FormSubmit by email as a fallback.
+  var WA_NUMBER = "254725310112";
+
+  document.querySelectorAll("form[data-wa]").forEach(function (form) {
     var status = form.querySelector(".form-status");
-    var button = form.querySelector('button[type="submit"]');
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -61,39 +62,33 @@
         return;
       }
 
-      var data = {};
+      var services = [];
+      var lines = [];
       new FormData(form).forEach(function (value, key) {
-        if (key === "services") {
-          data["Services requested"] = data["Services requested"] ? data["Services requested"] + ", " + value : value;
-        } else if (value !== "") {
-          data[key] = value;
-        }
+        value = String(value).trim();
+        if (!value || key.charAt(0) === "_") return;
+        if (key === "services") services.push(value);
+        else lines.push("*" + key + ":* " + value);
       });
-      data["Page"] = window.location.href;
 
-      var label = button.textContent;
-      button.disabled = true;
-      button.textContent = "Sending…";
+      var intro = form.getAttribute("data-wa-intro") || "Hello Protech Security, I'd like to place an order.";
+      var text = intro + "\n\n" +
+        (services.length ? "*Service:* " + services.join(", ") + "\n" : "") +
+        lines.join("\n") +
+        "\n\n(Sent from " + window.location.hostname + window.location.pathname + ")";
+      var url = "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(text);
 
-      fetch(form.getAttribute("data-ajax"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(data)
-      })
-        .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
-        .then(function (r) {
-          if (!r.ok || String(r.body.success) === "false") throw new Error(r.body.message || "Send failed");
-          form.reset();
-          show("ok", form.getAttribute("data-success"));
-          if (typeof window.gtag === "function") window.gtag("event", "generate_lead", { form: form.id });
-        })
-        .catch(function () {
-          show("err", "Your request didn't send. Check your connection and try again, or email info@pro-tech.co.ke directly.");
-        })
-        .finally(function () {
-          button.disabled = false;
-          button.textContent = label;
-        });
+      var win = window.open(url, "_blank", "noopener");
+      if (!win) window.location.href = url;
+
+      show("ok", "WhatsApp is opening with your order. Just press Send and our team will reply. ");
+      if (status) {
+        var a = document.createElement("a");
+        a.href = url; a.target = "_blank"; a.rel = "noopener";
+        a.textContent = "Didn't open? Tap here.";
+        status.appendChild(a);
+      }
+      if (typeof window.gtag === "function") window.gtag("event", "generate_lead", { form: form.id || "whatsapp" });
     });
 
     function show(kind, msg) {
@@ -105,4 +100,18 @@
       status.scrollIntoView({ block: "nearest", behavior: "smooth" });
     }
   });
+
+  // Fade sections in as they scroll into view
+  document.documentElement.classList.add("js");
+  var items = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); }
+      });
+    }, { rootMargin: "0px 0px -8% 0px" });
+    items.forEach(function (el) { io.observe(el); });
+  } else {
+    items.forEach(function (el) { el.classList.add("in"); });
+  }
 })();
