@@ -300,9 +300,10 @@ p { margin: 0 0 1em; }
 .badge .order {
   position: relative; z-index: 1; margin-top: auto; align-self: flex-start;
   display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px;
-  background: #e9f9ef; color: var(--whatsapp-deep); font-weight: 700; font-size: .92rem; text-decoration: none;
+  background: #fff0f1; color: var(--hivis); font-weight: 700; font-size: .92rem; text-decoration: none;
 }
-.badge .order:hover { background: var(--whatsapp); color: var(--white); }
+.badge .order::after { content: "92"; }
+.badge .order:hover { background: var(--hivis); color: var(--white); }
 .badge .order svg { width: 18px; height: 18px; }
 
 /* Stats band */
@@ -641,14 +642,13 @@ fieldset.field { border: 0; padding: 0; margin: 0; min-width: 0; }
   .wa-float { display: none; }
   body { padding-bottom: 66px; }
   .mobile-cta {
-    display: grid; grid-template-columns: 1fr 1.5fr 1fr; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    display: grid; grid-template-columns: 1fr 1.4fr; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
     background: var(--night); box-shadow: 0 -6px 20px rgba(0,0,0,.25);
   }
   .mobile-cta a {
     display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 66px;
     color: var(--white); text-decoration: none; font-weight: 700; font-size: .95rem;
   }
-  .mobile-cta a:nth-child(2) { background: var(--whatsapp); font-family: var(--head); font-weight: 800; }
   .mobile-cta a:last-child { background: var(--hivis); font-family: var(--head); font-weight: 800; }
   .mobile-cta svg { width: 20px; height: 20px; }
 }
@@ -675,3 +675,8 @@ fieldset.field { border: 0; padding: 0; margin: 0; min-width: 0; }
   .hero .pill { display: none; }
   .chip small { display: none; }
 }
+
+/* Detailed order form: section headings */
+.form-sec { margin: 18px 0 0; padding-top: 18px; border-top: 1px solid var(--line); font-size: 1.05rem; text-transform: uppercase; letter-spacing: .06em; color: var(--hivis); }
+.form-grid > .form-sec:first-of-type { border-top: 0; padding-top: 0; }
+.form-sec-inline { font: 800 1.05rem var(--head); text-transform: uppercase; letter-spacing: .06em; color: var(--hivis); }
