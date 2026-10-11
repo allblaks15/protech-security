@@ -35,7 +35,36 @@
     });
   }
   // URL parameter -> quote form field name (field names double as labels in the email)
-  [["name", "Full name"], ["location", "Location"], ["phone", "Phone"]].forEach(function (pair) {
+  // County -> Town dropdowns. Picking "Other" shows a box to type the town name.
+  var TOWNS = window.KENYA_TOWNS || {};
+  document.querySelectorAll("select[data-towns]").forEach(function (county) {
+    var town = document.getElementById(county.getAttribute("data-towns"));
+    var otherWrap = document.getElementById(town.id + "-other-wrap");
+    var other = otherWrap && otherWrap.querySelector("input");
+
+    function setOther(on) {
+      if (!otherWrap) return;
+      otherWrap.hidden = !on;
+      other.disabled = !on;
+      other.required = on;
+      if (!on) other.value = "";
+    }
+    function fillTowns() {
+      var list = TOWNS[county.value] || [];
+      town.innerHTML = "";
+      town.add(new Option(county.value ? "Choose town or area" : "Choose a county first", ""));
+      list.forEach(function (t) { town.add(new Option(t, t)); });
+      if (county.value) town.add(new Option("Other (type it below)", "Other"));
+      town.disabled = !county.value;
+      setOther(false);
+    }
+    county.addEventListener("change", fillTowns);
+    town.addEventListener("change", function () { setOther(town.value === "Other"); });
+    county.form.addEventListener("reset", function () { setTimeout(fillTowns, 0); });
+    fillTowns();
+  });
+
+  [["name", "Full name"], ["location", "Address"], ["phone", "Phone"]].forEach(function (pair) {
     var v = params.get(pair[0]);
     var input = document.querySelector('#quote-form [name="' + pair[1] + '"]');
     if (v && input && !input.value) input.value = v;
